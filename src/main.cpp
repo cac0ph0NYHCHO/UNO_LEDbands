@@ -20,13 +20,11 @@ enum SystemState : uint8_t {
   STATE_STATIONARY,         // 4. 静止
   STATE_TEST,               // 5. 颜色测试
   STATE_BREATHING,          // 6. 呼吸效果
-  STATE_RAINBOW,            // 7. 彩虹效果
-  STATE_EMERGENCY_STOP      // 8. 急停
+  STATE_RAINBOW             // 7. 彩虹效果
 };
 
 // 全局变量（最小化）
 SystemState currentState = STATE_IDLE;
-SystemState lastState = STATE_IDLE;
 bool emergencyActive = false;
 bool ledInitialized = false;
 uint32_t emergencyStartTime = 0;
@@ -49,8 +47,6 @@ void showHelp();
 void showCurrentState();
 void showEmergencyStatus(uint32_t currentTime);
 void testAllColors();
-void breathingEffect();
-void rainbowEffect(uint8_t wait);
 uint32_t Wheel(uint8_t WheelPos);
 String getTimeString();
 void printStateName(SystemState state);
@@ -255,11 +251,6 @@ void processCommand(const char* command) {
 void updateLEDDisplay(uint32_t currentTime, uint32_t* lastLEDUpdate) {
   if (!ledInitialized) return;
   
-  if (emergencyActive) {
-      setAllLEDs(255, 0, 0);
-      return;
-  }
-  
   static uint16_t animationStep = 0;
   static uint8_t ledPosition = 0;
 
@@ -442,10 +433,6 @@ void showCurrentState() {
 
 // 显示急停状态
 void showEmergencyStatus(uint32_t currentTime) {
-  if (emergencyStartTime == 0) {
-    emergencyStartTime = currentTime;
-  }
-  
   uint32_t duration = (currentTime - emergencyStartTime) / 1000;
   Serial.print(F("[急停] 持续时间: "));
   Serial.print(duration);
@@ -481,68 +468,6 @@ void testAllColors() {
   setAllLEDs(0, 0, 0);
 }
 
-// 呼吸效果
-void breathingEffect() {
-  Serial.println(F("\n开始呼吸效果 (10秒)"));
-  
-  currentState = STATE_IDLE;
-  uint32_t startTime = millis();
-  
-  for(uint16_t i = 0; i < 500; i++) {
-    if (emergencyActive || Serial.available() > 0) return;
-    if (Serial.available() > 0 || (millis() - startTime > 10000)) {
-      break;
-    }
-    
-    uint8_t brightness = 128 + 127 * sin(i * 3.14159 / 128.0);
-    setAllLEDs(0, brightness, 0);
-    delay(20);
-  }
-  
-  Serial.println(F("呼吸效果结束"));
-  setAllLEDs(0, 0, 0);
-}
-
-// 彩虹效果
-void rainbowEffect(uint8_t wait) {
-  Serial.println(F("\n开始彩虹效果 (10秒)"));
-  
-  currentState = STATE_IDLE; // 进入彩虹模式时，清空当前状态防止冲突
-  uint32_t startTime = millis();
-  
-  // 运行条件：时间没到 10 秒 且 没有按下急停 且 串口没有新命令
-  while (millis() - startTime < 10000) {
-    
-    // 第一层：每跑一轮完整彩虹色轮前检查一次
-    if (emergencyActive || Serial.available() > 0) break;
-
-    for (uint16_t firstPixelHue = 0; firstPixelHue < 65536; firstPixelHue += 256) {
-      
-      // 第二层：【最重要】在每一帧动画渲染前检查。
-      // 只要急停激活或串口有新指令，立刻“斩断”执行，彻底跳出函数
-      if (emergencyActive || Serial.available() > 0) {
-        Serial.println(F("彩虹效果被强行中断"));
-        return; 
-      }
-      
-      for (uint8_t i = 0; i < NUMPIXELS; i++) {
-        uint16_t pixelHue = firstPixelHue + (i * 65536L / NUMPIXELS);
-        pixels.setPixelColor(i, pixels.gamma32(pixels.ColorHSV(pixelHue)));
-      }
-      
-      pixels.show();
-      delay(wait); // 这里的等待时间越短，检查的频率就越高
-    }
-  }
-  
-  Serial.println(F("彩虹效果自然结束"));
-  
-  // 只有在非急停状态下才自动关灯，如果是急停触发的结束，交给 loop 处理红色
-  if (!emergencyActive) {
-    setAllLEDs(0, 0, 0);
-  }
-}
-
 // 获取时间字符串
 String getTimeString() {
   uint32_t totalSeconds = millis() / 1000;
@@ -568,7 +493,6 @@ void printStateName(SystemState state) {
     case STATE_TEST: Serial.print(F("颜色测试")); break;
     case STATE_BREATHING: Serial.print(F("呼吸效果")); break;
     case STATE_RAINBOW: Serial.print(F("彩虹效果")); break;
-    case STATE_EMERGENCY_STOP: Serial.print(F("急停")); break;
   }
 }
 
