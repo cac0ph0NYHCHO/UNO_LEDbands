@@ -18,7 +18,8 @@ void setup() {
   Serial.println(F("      4=蓝 5=蓝色走马灯 6=白 7=测试"));
   Serial.println(F("      8=呼吸 9=彩虹 help=帮助"));
   Serial.println(F("----------------------------------------"));
-  Serial.println(F("硬件: D2=急停 D7=LED 数量=8"));
+  Serial.print(F("硬件: D2=急停 D7=LED 数量="));
+  Serial.println(NUMPIXELS);
   Serial.println(F("波特率: 9600"));
   Serial.println(F("----------------------------------------"));
   Serial.println(F("等待命令..."));
