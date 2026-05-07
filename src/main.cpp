@@ -4,11 +4,53 @@
 #include "led_controller.h"
 #include "command_handler.h"
 #include "emergency.h"
+// #include "can_handler.h"    // CAN 模块（暂时禁用）
+
+/* ===========================================================
+ * CAN 命令回调函数（暂时禁用）
+ * =========================================================== */
+/*
+static void onCanCommand(const CanFrame* frame) {
+  if (!frame) return;
+
+  Serial.print(F("[CAN] 收到: ID=0x"));
+  Serial.print(frame->id, HEX);
+  Serial.print(F(" 数据="));
+  for (uint8_t i = 0; i < frame->len; i++) {
+    Serial.print(frame->data[i], HEX);
+    Serial.print(F(" "));
+  }
+  Serial.println();
+
+  if (frame->id == 0x100 && frame->len >= 1) {
+    char cmdStr[4];
+    snprintf(cmdStr, sizeof(cmdStr), "%d", frame->data[0]);
+    processCommand(cmdStr);
+  }
+  else if (frame->id == 0x101 && frame->len >= 3) {
+    setAllLEDs(frame->data[0], frame->data[1], frame->data[2]);
+    currentState = STATE_IDLE;
+    Serial.print(F("[CAN] 直接设色: RGB("));
+    Serial.print(frame->data[0]);
+    Serial.print(F(","));
+    Serial.print(frame->data[1]);
+    Serial.print(F(","));
+    Serial.println(frame->data[2]);
+  }
+}
+*/
 
 void setup() {
   Serial.begin(115200);
   initEmergency();
   initLEDs();
+
+  // // CAN 总线（暂时禁用）
+  // if (initCAN(CAN_TX_PIN, CAN_RX_PIN, CAN_BAUDRATE)) {
+  //   registerCanCallback(onCanCommand);
+  //   Serial.println(F("[CAN] 回调注册完成"));
+  // }
+
   delay(500);
 
   Serial.println(F("========================================"));
@@ -20,7 +62,6 @@ void setup() {
   Serial.println(F("----------------------------------------"));
   Serial.print(F("硬件: D4=急停 IO1=LED 数量="));
   Serial.println(NUMPIXELS);
-  Serial.println(F("波特率: 115200"));
   Serial.println(F("----------------------------------------"));
   Serial.println(F("等待命令..."));
   Serial.println(F("========================================"));
@@ -28,10 +69,27 @@ void setup() {
   showCurrentState();
 }
 
+// /* ===========================================================
+//  * 发送 CAN 测试帧（暂时禁用）
+//  * =========================================================== */
+// void sendCanTestFrame() {
+//   uint8_t data[3] = {0xAA, 0xBB, 0xCC};
+//   if (sendCanMessage(0x100, data, 3)) {
+//     Serial.println(F("[CAN测试] 已发送 ID=0x100  data=AA BB CC"));
+//     Serial.println(F("[CAN测试] 等待回环接收..."));
+//   } else {
+//     Serial.println(F("[CAN测试] 发送失败!"));
+//   }
+// }
+
 void loop() {
   uint32_t currentTime = millis();
   static uint32_t lastLEDUpdate = 0;
   static uint32_t lastStatusUpdate = 0;
+  // static uint32_t lastCanTestTime = 0;  // CAN（暂时禁用）
+
+  // // CAN 接收处理（暂时禁用）
+  // processCANReceive();
 
   if (emergencyActive) {
     if (emergencyStartTime == 0) {
@@ -57,5 +115,12 @@ void loop() {
     showCurrentState();
   }
 
+  // // 回环模式：每 5 秒自动发送一次测试帧（暂时禁用）
+  // if (currentTime - lastCanTestTime > 5000) {
+  //   lastCanTestTime = currentTime;
+  //   sendCanTestFrame();
+  // }
+
   delay(1);
 }
+
