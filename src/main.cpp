@@ -4,6 +4,10 @@
 #include "led_controller.h"
 #include "command_handler.h"
 #include "emergency.h"
+#include "button.h"
+#include "WS_Dout.h"        // EXIO 数字输出控制
+#include "WS_TCA9554PWR.h"  // I2C IO 扩展器
+#include "I2C_Driver.h"     // I2C 驱动
 // #include "can_handler.h"    // CAN 模块（暂时禁用）
 
 /* ===========================================================
@@ -44,6 +48,11 @@ void setup() {
   Serial.begin(115200);
   initEmergency();
   initLEDs();
+  initButton();
+
+  // 初始化 I2C 和 EXIO 数字输出
+  I2C_Init();
+  Dout_Init();
 
   // // CAN 总线（暂时禁用）
   // if (initCAN(CAN_TX_PIN, CAN_RX_PIN, CAN_BAUDRATE)) {
@@ -60,8 +69,11 @@ void setup() {
   Serial.println(F("      4=蓝 5=蓝色走马灯 6=白 7=测试"));
   Serial.println(F("      8=呼吸 9=彩虹 help=帮助"));
   Serial.println(F("----------------------------------------"));
-  Serial.print(F("硬件: D4=急停 IO1=LED 数量="));
+  Serial.print(F("硬件: D4=急停 IO1=LED 按键=GPIO"));
+  Serial.print(BUTTON_PIN);
+  Serial.print(F(" 数量="));
   Serial.println(NUMPIXELS);
+  Serial.println(F("按键: 短按=EXIO1输出24V 长按=WiFi信号(预留)"));
   Serial.println(F("----------------------------------------"));
   Serial.println(F("等待命令..."));
   Serial.println(F("========================================"));
@@ -90,6 +102,24 @@ void loop() {
 
   // // CAN 接收处理（暂时禁用）
   // processCANReceive();
+
+  // 更新按键状态
+  updateButton();
+  ButtonEvent btnEvent = getButtonEvent();
+  if (btnEvent == BTN_SHORT_PRESS) {
+    static bool exioState = false;
+    exioState = !exioState;
+    if (exioState) {
+      Dout_Open(1);
+      Serial.println(F("[主循环] EXIO1 导通"));
+    } else {
+      Dout_Closs(1);
+      Serial.println(F("[主循环] EXIO1 断开"));
+    }
+  } else if (btnEvent == BTN_LONG_PRESS) {
+    Serial.println(F("[主循环] 长按事件 - 预留: WiFi 发送信号"));
+    // TODO: 长按通过 WiFi 发出信号
+  }
 
   if (emergencyActive) {
     if (emergencyStartTime == 0) {

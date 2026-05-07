@@ -9,6 +9,9 @@
 #define EMERGENCY_PIN 4      // 急停开关引脚 (GPIO4 = 数字输入1)
 #define NUMPIXELS 100        // LED 数量
 
+// ========== 按键配置 ==========
+#define SHORT_PRESS_MS  2000  // 短按阈值(ms)：小于此值为短按，大于等于为长按
+
 // ========== CAN 配置（已禁用） ==========
 // #define CAN_TX_PIN   2      // CAN 发送引脚 (GPIO2)
 // #define CAN_RX_PIN   3      // CAN 接收引脚 (GPIO3)
