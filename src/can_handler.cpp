@@ -94,9 +94,9 @@ bool initCAN(uint8_t txPin, uint8_t rxPin, uint32_t baudRate) {
   canBaudRate = baudRate;
 
   // 1. 配置 GPIO 引脚
-  twai_gpio_config_t gConfig = TWAI_GPIO_CONFIG_DEFAULT();
-  gConfig.tx_io = (gpio_num_t)txPin;
-  gConfig.rx_io = (gpio_num_t)rxPin;
+//  twai_gpio_config_t gConfig = TWAI_GPIO_CONFIG_DEFAULT();
+//  gConfig.tx_io = (gpio_num_t)txPin;
+//  gConfig.rx_io = (gpio_num_t)rxPin;
 
   // 2. 配置时序（波特率）
   twai_timing_config_t tConfig;
@@ -110,21 +110,21 @@ bool initCAN(uint8_t txPin, uint8_t rxPin, uint32_t baudRate) {
   twai_filter_config_t fConfig = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
   // 4. 安装 TWAI 驱动
-  esp_err_t err = twai_driver_install(&gConfig, &tConfig, &fConfig);
-  if (err != ESP_OK) {
-    Serial.print(F("[CAN] 驱动安装失败, 错误码: "));
-    Serial.println(err);
-    return false;
-  }
+//  esp_err_t err = twai_driver_install(&gConfig, &tConfig, &fConfig);
+//  if (err != ESP_OK) {
+//    Serial.print(F("[CAN] 驱动安装失败, 错误码: "));
+//    Serial.println(err);
+//    return false;
+//  }
 
   // 5. 启动 TWAI 控制器
-  err = twai_start();
-  if (err != ESP_OK) {
-    Serial.print(F("[CAN] 启动失败, 错误码: "));
-    Serial.println(err);
-    twai_driver_uninstall();
-    return false;
-  }
+//  err = twai_start();
+//  if (err != ESP_OK) {
+//    Serial.print(F("[CAN] 启动失败, 错误码: "));
+//    Serial.println(err);
+//    twai_driver_uninstall();
+//    return false;
+//  }
 
   canInitialized = true;
   canTxCount = 0;
