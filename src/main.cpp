@@ -8,6 +8,8 @@
 #include "WS_Dout.h"        // EXIO 数字输出控制
 #include "WS_TCA9554PWR.h"  // I2C IO 扩展器
 #include "I2C_Driver.h"     // I2C 驱动
+#include "WS_WIFI.h"        // WiFi STA 连接路由器 + 网页控制DOUT
+#include "WS_GPIO.h"        // RGB + 蜂鸣器（WiFi连接状态指示）
 // #include "can_handler.h"    // CAN 模块（暂时禁用）
 
 /* ===========================================================
@@ -50,9 +52,15 @@ void setup() {
   initLEDs();
   initButton();
 
+    // 初始化 GPIO（RGB灯和蜂鸣器）
+  GPIO_Init();
+
   // 初始化 I2C 和 EXIO 数字输出
   I2C_Init();
   Dout_Init();
+
+    // 初始化 WiFi STA（连接路由器 + 启动网页服务器控制DOUT）
+    WIFI_Init();
 
   // // CAN 总线（暂时禁用）
   // if (initCAN(CAN_TX_PIN, CAN_RX_PIN, CAN_BAUDRATE)) {
