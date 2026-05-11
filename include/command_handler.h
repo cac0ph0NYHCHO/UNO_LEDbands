@@ -11,6 +11,5 @@ void showCurrentState();
 String getTimeString();
 void printStateName(SystemState state);
 char toLowerCase(char c);
-void testAllColors();
 
 #endif // COMMAND_HANDLER_H

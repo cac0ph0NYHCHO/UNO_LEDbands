@@ -152,8 +152,8 @@ void loop() {
     showCurrentState();
   }
 
-    // 回环模式：每 5 秒自动发送一次测试帧
-  if (currentTime - lastCanTestTime > 5000) {
+        // 回环模式：每 10 秒自动发送一次测试帧
+  if (currentTime - lastCanTestTime > 10000) {
     lastCanTestTime = currentTime;
     sendCanTestFrame();
   }

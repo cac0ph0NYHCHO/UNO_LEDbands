@@ -42,8 +42,12 @@ void processCommand(const char* command) {
     return;
   }
 
-    if (strcmp(cmd, "test") == 0) {
-      testAllColors();
+        if (strcmp(cmd, "test") == 0) {
+      currentState = STATE_TEST;
+      testStepTime = 0;
+      testColorIndex = 0;
+      Serial.println(F("命令: 7 - 颜色测试"));
+      showCurrentState();
       return;
     }
 
@@ -136,7 +140,7 @@ void showHelp() {
   Serial.println(F("4: 蓝色常亮"));
   Serial.println(F("5: 蓝色走马灯"));
   Serial.println(F("6: 白色常亮"));
-  Serial.println(F("7: 测试颜色"));
+  Serial.println(F("7/test: 测试颜色"));
   Serial.println(F("8: 呼吸效果"));
   Serial.println(F("9: 彩虹效果"));
     Serial.println(F("help: 帮助信息"));
@@ -158,33 +162,7 @@ void showCurrentState() {
   Serial.println(getTimeString());
 }
 
-void testAllColors() {
-  Serial.println(F("\n开始颜色测试..."));
-
-  const uint8_t colors[7][3] = {
-    {255, 0, 0},
-    {0, 255, 0},
-    {0, 0, 255},
-    {255, 255, 0},
-    {255, 0, 255},
-    {0, 255, 255},
-    {255, 255, 255}
-  };
-
-  const char* colorNames[] = {"红色", "绿色", "蓝色", "黄色", "紫色", "青色", "白色"};
-
-  for(uint8_t i = 0; i < 7; i++) {
-    if (emergencyActive) return;
-    Serial.print(F("显示: "));
-    Serial.println(colorNames[i]);
-    setAllLEDs(colors[i][0], colors[i][1], colors[i][2]);
-    delay(800);
-  }
-
-  Serial.println(F("颜色测试完成"));
-  currentState = STATE_IDLE;
-  setAllLEDs(0, 0, 0);
-}
+// testAllColors() 已废弃，功能由 STATE_TEST 在 updateLEDDisplay() 中以非阻塞方式实现
 
 String getTimeString() {
   uint32_t totalSeconds = millis() / 1000;
