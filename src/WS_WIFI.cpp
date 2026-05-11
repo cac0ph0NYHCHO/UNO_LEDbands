@@ -240,6 +240,14 @@ void WifiStaTask(void *parameter) {
   uint8_t Count = 0;
   WiFi.mode(WIFI_STA);                                   
   WiFi.setSleep(true);      
+
+  // 设置静态 IP
+  IPAddress local_IP(10, 7, 5, 82);
+  IPAddress gateway(10, 7, 5, 1);
+  IPAddress subnet(255, 255, 255, 0);
+  IPAddress primaryDNS(114, 114, 114, 114);
+  WiFi.config(local_IP, gateway, subnet, primaryDNS);
+
   WiFi.begin(ssid, password);                         // Connect to the specified Wi-Fi network
   while(1){
         if(WiFi.status() != WL_CONNECTED)
