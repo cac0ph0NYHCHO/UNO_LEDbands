@@ -242,15 +242,12 @@ void WifiStaTask(void *parameter) {
   WiFi.setSleep(true);      
   WiFi.begin(ssid, password);                         // Connect to the specified Wi-Fi network
   while(1){
-    if(WiFi.status() != WL_CONNECTED)
+        if(WiFi.status() != WL_CONNECTED)
     {
       WIFI_Connection = 0;
-      printf(".\n");  
-      RGB_Open_Time(50, 0, 0, 500, 0); 
       Count++;
-      if(Count >= 10){
+      if(Count >= 30){
         Count = 0;
-        printf("\r\n"); 
         WiFi.disconnect();
         vTaskDelay(pdMS_TO_TICKS(100));
         WiFi.mode(WIFI_OFF);

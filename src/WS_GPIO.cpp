@@ -41,18 +41,20 @@ void RGB_Open_Time(uint8_t red_val, uint8_t green_val, uint8_t blue_val, uint16_
 
   if(RGB_indicate_Num + 1 >= RGB_Indicate_Number)
   {
-    printf("Note : The RGB indicates that the cache is full and has been ignored\r\n");
+    // 队列满了：丢弃最旧的一条，腾出位置
+    for (int i = 1; i < RGB_Indicate_Number; i++) {
+      RGB_indicate[i-1] = RGB_indicate[i];
+    }
+    RGB_indicate_Num = RGB_Indicate_Number - 1;
   }
-  else{
-    RGB_indicate[RGB_indicate_Num].Red = red_val;
-    RGB_indicate[RGB_indicate_Num].Green = green_val;
-    RGB_indicate[RGB_indicate_Num].Blue = blue_val;
-    RGB_indicate[RGB_indicate_Num].RGB_Time = Time;
-    if(flicker_time<51)
-      flicker_time = 0;                                         // If the blinking interval is less than 50ms, the blinking is ignored
-    RGB_indicate[RGB_indicate_Num].RGB_Flicker = flicker_time;
-    RGB_indicate_Num ++;
-  }
+  RGB_indicate[RGB_indicate_Num].Red = red_val;
+  RGB_indicate[RGB_indicate_Num].Green = green_val;
+  RGB_indicate[RGB_indicate_Num].Blue = blue_val;
+  RGB_indicate[RGB_indicate_Num].RGB_Time = Time;
+  if(flicker_time<51)
+    flicker_time = 0;                                         // If the blinking interval is less than 50ms, the blinking is ignored
+  RGB_indicate[RGB_indicate_Num].RGB_Flicker = flicker_time;
+  RGB_indicate_Num ++;
 }
 void RGBTask(void *parameter) {
   bool RGB_Flag = 0;
@@ -120,15 +122,17 @@ void Buzzer_Open_Time(uint16_t Time, uint16_t flicker_time)
 {
   if(Buzzer_indicate_Num + 1 >= Buzzer_Indicate_Number)
   {
-    printf("Note : The buzzer indicates that the cache is full and has been ignored\r\n");
+    // 队列满了：丢弃最旧的一条
+    for (int i = 1; i < Buzzer_Indicate_Number; i++) {
+      Buzzer_indicate[i-1] = Buzzer_indicate[i];
+    }
+    Buzzer_indicate_Num = Buzzer_Indicate_Number - 1;
   }
-  else{
-    Buzzer_indicate[Buzzer_indicate_Num].Buzzer_Time = Time;
-    if(flicker_time<51)
-      flicker_time = 0;                                         // If the blinking interval is less than 50ms, the blinking is ignored
-    Buzzer_indicate[Buzzer_indicate_Num].Buzzer_Flicker = flicker_time;
-    Buzzer_indicate_Num ++;
-  }
+  Buzzer_indicate[Buzzer_indicate_Num].Buzzer_Time = Time;
+  if(flicker_time<51)
+    flicker_time = 0;                                         // If the blinking interval is less than 50ms, the blinking is ignored
+  Buzzer_indicate[Buzzer_indicate_Num].Buzzer_Flicker = flicker_time;
+  Buzzer_indicate_Num ++;
 }
 void BuzzerTask(void *parameter) {
   bool Buzzer_Flag = 0;

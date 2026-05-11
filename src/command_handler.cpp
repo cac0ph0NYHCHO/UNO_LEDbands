@@ -48,11 +48,20 @@ void processCommand(const char* command) {
     }
 
         // CAN 测试命令
-    if (strcmp(cmd, "cantest") == 0) {
-      uint8_t data[3] = {0xAA, 0xBB, 0xCC};
-      Serial.println(F("[命令] 发送CAN测试帧..."));
-      if (sendCanMessage(0x100, data, 3)) {
-        Serial.println(F("[命令] CAN测试帧已发送, 等待回环接收..."));
+
+
+
+
+
+
+
+
+
+        if (strcmp(cmd, "cantest") == 0) {
+      uint8_t data[1] = {2};
+      Serial.println(F("[命令] 发送CAN测试帧(红色常亮)..."));
+      if (sendCanMessage(0x100, data, 1)) {
+        Serial.println(F("[命令] CAN测试帧已发送, LED将变为红色"));
       } else {
         Serial.println(F("[命令] CAN发送失败(未初始化?)"));
       }

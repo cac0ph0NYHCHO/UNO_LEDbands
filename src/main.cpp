@@ -91,9 +91,10 @@ void setup() {
  * 发送 CAN 测试帧
  * =========================================================== */
 void sendCanTestFrame() {
-  uint8_t data[3] = {0xAA, 0xBB, 0xCC};
-  if (sendCanMessage(0x100, data, 3)) {
-    Serial.println(F("[CAN测试] 已发送 ID=0x100  data=AA BB CC"));
+  // data[0]=2 对应命令"2"=红色常亮
+  uint8_t data[1] = {2};
+  if (sendCanMessage(0x100, data, 1)) {
+    Serial.println(F("[CAN测试] 已发送 ID=0x100  data=[2] (红色常亮)"));
     Serial.println(F("[CAN测试] 等待回环接收..."));
   } else {
     Serial.println(F("[CAN测试] 发送失败!"));

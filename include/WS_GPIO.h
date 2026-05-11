@@ -21,7 +21,7 @@
 #define Dutyfactor_MAX  255
 
 
-#define RGB_Indicate_Number  10 // Number of saved RGB indicator signals
+#define RGB_Indicate_Number  50 // Number of saved RGB indicator signals
 typedef struct { 
   uint8_t Red = 0;
   uint8_t Green = 0;
