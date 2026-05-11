@@ -10,12 +10,11 @@
 #include "I2C_Driver.h"     // I2C 驱动
 #include "WS_WIFI.h"        // WiFi STA 连接路由器 + 网页控制DOUT
 #include "WS_GPIO.h"        // RGB + 蜂鸣器（WiFi连接状态指示）
-// #include "can_handler.h"    // CAN 模块（暂时禁用）
+#include "can_handler.h"    // CAN 模块
 
 /* ===========================================================
- * CAN 命令回调函数（暂时禁用）
+ * CAN 命令回调函数
  * =========================================================== */
-/*
 static void onCanCommand(const CanFrame* frame) {
   if (!frame) return;
 
@@ -44,7 +43,6 @@ static void onCanCommand(const CanFrame* frame) {
     Serial.println(frame->data[2]);
   }
 }
-*/
 
 void setup() {
   Serial.begin(115200);
@@ -62,11 +60,11 @@ void setup() {
     // 初始化 WiFi STA（连接路由器 + 启动网页服务器控制DOUT）
     WIFI_Init();
 
-  // // CAN 总线（暂时禁用）
-  // if (initCAN(CAN_TX_PIN, CAN_RX_PIN, CAN_BAUDRATE)) {
-  //   registerCanCallback(onCanCommand);
-  //   Serial.println(F("[CAN] 回调注册完成"));
-  // }
+    // CAN 总线
+  if (initCAN(CAN_TX_PIN, CAN_RX_PIN, CAN_BAUDRATE)) {
+    registerCanCallback(onCanCommand);
+    Serial.println(F("[CAN] 回调注册完成"));
+  }
 
   delay(500);
 
@@ -89,27 +87,27 @@ void setup() {
   showCurrentState();
 }
 
-// /* ===========================================================
-//  * 发送 CAN 测试帧（暂时禁用）
-//  * =========================================================== */
-// void sendCanTestFrame() {
-//   uint8_t data[3] = {0xAA, 0xBB, 0xCC};
-//   if (sendCanMessage(0x100, data, 3)) {
-//     Serial.println(F("[CAN测试] 已发送 ID=0x100  data=AA BB CC"));
-//     Serial.println(F("[CAN测试] 等待回环接收..."));
-//   } else {
-//     Serial.println(F("[CAN测试] 发送失败!"));
-//   }
-// }
+/* ===========================================================
+ * 发送 CAN 测试帧
+ * =========================================================== */
+void sendCanTestFrame() {
+  uint8_t data[3] = {0xAA, 0xBB, 0xCC};
+  if (sendCanMessage(0x100, data, 3)) {
+    Serial.println(F("[CAN测试] 已发送 ID=0x100  data=AA BB CC"));
+    Serial.println(F("[CAN测试] 等待回环接收..."));
+  } else {
+    Serial.println(F("[CAN测试] 发送失败!"));
+  }
+}
 
 void loop() {
   uint32_t currentTime = millis();
-  static uint32_t lastLEDUpdate = 0;
+    static uint32_t lastLEDUpdate = 0;
   static uint32_t lastStatusUpdate = 0;
-  // static uint32_t lastCanTestTime = 0;  // CAN（暂时禁用）
+  static uint32_t lastCanTestTime = 0;  // CAN 定时测试
 
-  // // CAN 接收处理（暂时禁用）
-  // processCANReceive();
+  // CAN 接收处理
+  processCANReceive();
 
   // 更新按键状态
   updateButton();
@@ -153,11 +151,11 @@ void loop() {
     showCurrentState();
   }
 
-  // // 回环模式：每 5 秒自动发送一次测试帧（暂时禁用）
-  // if (currentTime - lastCanTestTime > 5000) {
-  //   lastCanTestTime = currentTime;
-  //   sendCanTestFrame();
-  // }
+    // 回环模式：每 5 秒自动发送一次测试帧
+  if (currentTime - lastCanTestTime > 5000) {
+    lastCanTestTime = currentTime;
+    sendCanTestFrame();
+  }
 
   delay(1);
 }

@@ -2,7 +2,7 @@
 #include "led_controller.h"
 #include "system_state.h"
 #include "emergency.h"
-// #include "can_handler.h"  // CAN（暂时禁用）
+#include "can_handler.h"  // CAN 模块
 
 void handleSerialCommands() {
   if (Serial.available() > 0) {
@@ -47,22 +47,22 @@ void processCommand(const char* command) {
       return;
     }
 
-    // // CAN 测试命令（暂时禁用）
-    // if (strcmp(cmd, "cantest") == 0) {
-    //   uint8_t data[3] = {0xAA, 0xBB, 0xCC};
-    //   Serial.println(F("[命令] 发送CAN测试帧..."));
-    //   if (sendCanMessage(0x100, data, 3)) {
-    //     Serial.println(F("[命令] CAN测试帧已发送, 等待回环接收..."));
-    //   } else {
-    //     Serial.println(F("[命令] CAN发送失败(未初始化?)"));
-    //   }
-    //   return;
-    // }
-    //
-    // if (strcmp(cmd, "canstatus") == 0) {
-    //   printCANStatus();
-    //   return;
-    // }
+        // CAN 测试命令
+    if (strcmp(cmd, "cantest") == 0) {
+      uint8_t data[3] = {0xAA, 0xBB, 0xCC};
+      Serial.println(F("[命令] 发送CAN测试帧..."));
+      if (sendCanMessage(0x100, data, 3)) {
+        Serial.println(F("[命令] CAN测试帧已发送, 等待回环接收..."));
+      } else {
+        Serial.println(F("[命令] CAN发送失败(未初始化?)"));
+      }
+      return;
+    }
+
+    if (strcmp(cmd, "canstatus") == 0) {
+      printCANStatus();
+      return;
+    }
 
   if (strcmp(cmd, "clear") == 0 || strcmp(cmd, "0") == 0) {
     setAllLEDs(0, 0, 0);
@@ -140,10 +140,10 @@ void showHelp() {
   Serial.println(F("8: 呼吸效果"));
   Serial.println(F("9: 彩虹效果"));
     Serial.println(F("help: 帮助信息"));
-  Serial.println(F("status: 当前状态"));
-  // Serial.println(F("cantest: CAN自发自收测试"));   // 暂时禁用
-  // Serial.println(F("canstatus: CAN总线状态"));      // 暂时禁用
-  Serial.println(F("=========================="));
+    Serial.println(F("status: 当前状态"));
+    Serial.println(F("cantest: CAN自发自收测试"));
+    Serial.println(F("canstatus: CAN总线状态"));
+    Serial.println(F("=========================="));
 }
 
 void showCurrentState() {

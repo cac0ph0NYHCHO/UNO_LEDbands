@@ -12,12 +12,12 @@
 // ========== 按键配置 ==========
 #define SHORT_PRESS_MS  2000  // 短按阈值(ms)：小于此值为短按，大于等于为长按
 
-// ========== CAN 配置（已禁用） ==========
-// #define CAN_TX_PIN   2      // CAN 发送引脚 (GPIO2)
-// #define CAN_RX_PIN   3      // CAN 接收引脚 (GPIO3)
-// #define CAN_BAUDRATE 500000  // CAN 波特率 (500kbps)
+// ========== CAN 配置 ==========
+#define CAN_TX_PIN   2      // CAN 发送引脚 (GPIO2)
+#define CAN_RX_PIN   3      // CAN 接收引脚 (GPIO3)
+#define CAN_BAUDRATE 500000  // CAN 波特率 (500kbps)
 
-// #define CAN_LOOPBACK        // 回环模式（已禁用）
+#define CAN_LOOPBACK        // 回环模式（启用 = 软件模拟，无需外接硬件）
 
 #endif // CONFIG_H
 
