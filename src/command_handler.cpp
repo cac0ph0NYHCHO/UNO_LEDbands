@@ -47,17 +47,8 @@ void processCommand(const char* command) {
       return;
     }
 
-        // CAN 测试命令
-
-
-
-
-
-
-
-
-
-        if (strcmp(cmd, "cantest") == 0) {
+            // CAN 测试命令
+    if (strcmp(cmd, "cantest") == 0) {
       uint8_t data[1] = {2};
       Serial.println(F("[命令] 发送CAN测试帧(红色常亮)..."));
       if (sendCanMessage(0x100, data, 1)) {
