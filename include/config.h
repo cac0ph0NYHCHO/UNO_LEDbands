@@ -17,7 +17,19 @@
 #define CAN_RX_PIN   3      // CAN 接收引脚 (GPIO3)
 #define CAN_BAUDRATE 500000  // CAN 波特率 (500kbps)
 
-#define CAN_LOOPBACK        // 回环模式（启用 = 软件模拟，无需外接硬件）
+// CAN 模式选择：
+//   若要使用外部 CAN 继电器模块，请注释掉下面这行
+//   若要离线测试，取消注释（回环模式：软件模拟，无需外接硬件）
+// #define CAN_LOOPBACK        // 回环模式（启用 = 软件模拟，无需外接硬件）
+
+// ========== CAN 继电器模块配置 ==========
+#define CAN_RELAY_ENABLED     // 启用外部 CAN 继电器模块支持
+
+// 继电器模块 CAN 协议参数
+#define CAN_RELAY_STATION_ID  0x01   // 模块站号（默认 0x01）
+
+// ========== 串口命令中继电器相关 ==========
+#define RELAY_CMD_PREFIX     "relay"   // 串口继电器命令前缀
 
 #endif // CONFIG_H
 

@@ -1,4 +1,4 @@
-﻿#include <Arduino.h>
+#include <Arduino.h>
 #include "config.h"
 #include "system_state.h"
 #include "led_controller.h"
@@ -11,9 +11,15 @@
 #include "WS_WIFI.h"        // WiFi STA 连接路由器 + 网页控制DOUT
 #include "WS_GPIO.h"        // RGB + 蜂鸣器（WiFi连接状态指示）
 #include "can_handler.h"    // CAN 模块
+#include "can_relay.h"      // CAN 继电器模块
 
 /* ===========================================================
  * CAN 命令回调函数
+ *
+ * 本板作为 CAN 总线上的设备，收到以下 ID 的帧时执行相应操作：
+ *   0x100 — LED 灯带命令（兼容旧协议）
+ *   0x101 — LED 直接设色
+ *   0x200 — 外部继电器模块的回复/查询响应
  * =========================================================== */
 static void onCanCommand(const CanFrame* frame) {
   if (!frame) return;
@@ -27,11 +33,13 @@ static void onCanCommand(const CanFrame* frame) {
   }
   Serial.println();
 
+  // -------- LED 控制命令 (ID=0x100) --------
   if (frame->id == 0x100 && frame->len >= 1) {
     char cmdStr[4];
     snprintf(cmdStr, sizeof(cmdStr), "%d", frame->data[0]);
     processCommand(cmdStr);
   }
+  // -------- LED 直接设色 (ID=0x101) --------
   else if (frame->id == 0x101 && frame->len >= 3) {
     setAllLEDs(frame->data[0], frame->data[1], frame->data[2]);
     currentState = STATE_IDLE;
@@ -41,6 +49,10 @@ static void onCanCommand(const CanFrame* frame) {
     Serial.print(frame->data[1]);
     Serial.print(F(","));
     Serial.println(frame->data[2]);
+  }
+  // -------- 外部继电器模块回复 (ID=0x200) --------
+  else if (frame->id == 0x200) {
+    relayProcessResponse(frame->id, frame->data, frame->len);
   }
 }
 
@@ -75,6 +87,8 @@ void setup() {
   Serial.println(F("      4=蓝 5=蓝色走马灯 6=白 7=测试"));
   Serial.println(F("      8=呼吸 9=彩虹 help=帮助"));
   Serial.println(F("----------------------------------------"));
+  Serial.println(F("继电器: a~h=开 A~H=关 o=全开 p=全关 s=状态"));
+  Serial.println(F("----------------------------------------"));
   Serial.print(F("硬件: D4=急停 IO1=LED 按键=GPIO"));
   Serial.print(BUTTON_PIN);
   Serial.print(F(" 数量="));
@@ -103,7 +117,7 @@ void sendCanTestFrame() {
 
 void loop() {
   uint32_t currentTime = millis();
-    static uint32_t lastLEDUpdate = 0;
+  static uint32_t lastLEDUpdate = 0;
   static uint32_t lastStatusUpdate = 0;
   static uint32_t lastCanTestTime = 0;  // CAN 定时测试
 
@@ -125,7 +139,6 @@ void loop() {
     }
   } else if (btnEvent == BTN_LONG_PRESS) {
     Serial.println(F("[主循环] 长按事件 - 预留: WiFi 发送信号"));
-    // TODO: 长按通过 WiFi 发出信号
   }
 
   if (emergencyActive) {
@@ -147,17 +160,19 @@ void loop() {
   handleSerialCommands();
   updateLEDDisplay(currentTime, &lastLEDUpdate);
 
+  // 每秒打印一次状态
   if (currentTime - lastStatusUpdate > 1000) {
     lastStatusUpdate = currentTime;
     showCurrentState();
   }
 
   // 回环模式：每 10 秒自动发送一次测试帧
+  #ifdef CAN_LOOPBACK
   if (currentTime - lastCanTestTime > 10000) {
     lastCanTestTime = currentTime;
     sendCanTestFrame();
   }
+  #endif
 
   delay(1);
 }
-

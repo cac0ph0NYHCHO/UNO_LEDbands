@@ -3,6 +3,7 @@
 #include "system_state.h"
 #include "emergency.h"
 #include "can_handler.h"  // CAN 模块
+#include "can_relay.h"    // CAN 继电器模块
 
 void handleSerialCommands() {
   if (Serial.available() > 0) {
@@ -28,6 +29,40 @@ void handleSerialCommands() {
 void processCommand(const char* command) {
   char cmd[20];
   strcpy(cmd, command);
+  uint8_t cmdLen = strlen(cmd);
+
+  // ========== 单字母继电器命令（在 toLowerCase 之前检查，保留大小写） ==========
+  if (cmdLen == 1) {
+    char c = cmd[0];
+
+    // 小写 a~h = 打开 CH1~CH8
+    if (c >= 'a' && c <= 'h') {
+      relayOn(c - 'a' + 1);
+      return;
+    }
+    // 大写 A~H = 关闭 CH1~CH8
+    if (c >= 'A' && c <= 'H') {
+      relayOff(c - 'A' + 1);
+      return;
+    }
+    // o = 全部开
+    if (c == 'o' || c == 'O') {
+      relayAllOn();
+      return;
+    }
+    // p = 全部关
+    if (c == 'p' || c == 'P') {
+      relayAllOff();
+      return;
+    }
+    // s = 状态查询
+    if (c == 's' || c == 'S') {
+      relayPrintStatus();
+      return;
+    }
+  }
+
+  // ========== 转小写，处理其他命令 ==========
   for(uint8_t i = 0; cmd[i]; i++) {
     cmd[i] = toLowerCase(cmd[i]);
   }
@@ -121,7 +156,7 @@ void processCommand(const char* command) {
       rainbowHue = 0;
       Serial.println(F("命令: 9 - 彩虹效果"));
       break;
-    default:
+                default:
       Serial.print(F("未知命令: "));
       Serial.println(command);
       Serial.println(F("输入 'help' 查看命令"));
@@ -143,10 +178,15 @@ void showHelp() {
   Serial.println(F("7/test: 测试颜色"));
   Serial.println(F("8: 呼吸效果"));
   Serial.println(F("9: 彩虹效果"));
-    Serial.println(F("help: 帮助信息"));
+        Serial.println(F("help: 帮助信息"));
     Serial.println(F("status: 当前状态"));
     Serial.println(F("cantest: CAN自发自收测试"));
     Serial.println(F("canstatus: CAN总线状态"));
+    Serial.println(F(""));
+        Serial.println(F("--- 继电器控制（单字母） ---"));
+    Serial.println(F("a~h: 打开 CH1~CH8"));
+    Serial.println(F("A~H: 关闭 CH1~CH8"));
+    Serial.println(F("o: 全部开  p: 全部关  s: 状态查询"));
     Serial.println(F("=========================="));
 }
 
