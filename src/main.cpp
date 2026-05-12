@@ -50,17 +50,17 @@ void setup() {
   initLEDs();
   initButton();
 
-    // 初始化 GPIO（RGB灯和蜂鸣器）
+  // 初始化 GPIO（RGB灯和蜂鸣器）
   GPIO_Init();
 
   // 初始化 I2C 和 EXIO 数字输出
   I2C_Init();
   Dout_Init();
 
-    // 初始化 WiFi STA（连接路由器 + 启动网页服务器控制DOUT）
-    WIFI_Init();
+  // 初始化 WiFi STA（连接路由器 + 启动网页服务器控制DOUT）
+  WIFI_Init();
 
-    // CAN 总线
+  // CAN 总线
   if (initCAN(CAN_TX_PIN, CAN_RX_PIN, CAN_BAUDRATE)) {
     registerCanCallback(onCanCommand);
     Serial.println(F("[CAN] 回调注册完成"));
@@ -152,7 +152,7 @@ void loop() {
     showCurrentState();
   }
 
-        // 回环模式：每 10 秒自动发送一次测试帧
+  // 回环模式：每 10 秒自动发送一次测试帧
   if (currentTime - lastCanTestTime > 10000) {
     lastCanTestTime = currentTime;
     sendCanTestFrame();
