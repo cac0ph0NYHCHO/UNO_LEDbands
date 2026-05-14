@@ -15,7 +15,7 @@
 // ========== CAN 配置 ==========
 #define CAN_TX_PIN   2      // CAN 发送引脚 (GPIO2)
 #define CAN_RX_PIN   3      // CAN 接收引脚 (GPIO3)
-#define CAN_BAUDRATE 500000  // CAN 波特率 (500kbps)
+#define CAN_BAUDRATE 250000  // CAN 波特率 (250kbps)
 
 // CAN 模式选择：
 //   若要使用外部 CAN 继电器模块，请注释掉下面这行
