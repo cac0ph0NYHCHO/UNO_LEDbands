@@ -29,7 +29,22 @@
 #define CAN_RELAY_STATION_ID  0x01   // 模块站号（默认 0x01）
 
 // ========== 串口命令中继电器相关 ==========
-#define RELAY_CMD_PREFIX     "relay"   // 串口继电器命令前缀
+#define RELAY_CMD_PREFIX     "relay"   // 串口命令前缀
+
+// ========== 延迟测试配置 ==========
+// 取消注释启用按键→EXIO 反应时间测试模式
+// 启用后会关掉不必要的串口打印，并在关键点输出微秒级时间戳
+#define LATENCY_TEST_ENABLE
+
+#ifdef LATENCY_TEST_ENABLE
+  // 延迟测试模式下额外优化：
+  //   - 按键改用 GPIO 中断，消除 loop 轮询延迟
+  //   - 关掉每秒状态打印
+  //   - 关掉 LED 动画更新（仅保持空闲）
+  //   - 去掉 delay(1)
+  #define LATENCY_USE_INTERRUPT      // 使用 GPIO 中断检测按键
+#endif
 
 #endif // CONFIG_H
+
 

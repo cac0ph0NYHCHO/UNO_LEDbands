@@ -27,5 +27,12 @@ ButtonEvent getButtonEvent();
 void clearButtonEvent();
 void updateButton();
 
+// ========== 延迟测试用全局变量 ==========
+#ifdef LATENCY_TEST_ENABLE
+extern uint32_t g_btnFallTime;   // 按键下降沿（按下）时刻，单位 us
+extern volatile bool g_btnPressedFlag;  // 中断触发的按键按下标志
+extern uint32_t g_btnPressTimeMs;      // ISR 中记录的按下时刻 (ms)
+#endif
+
 #endif // BUTTON_H
 

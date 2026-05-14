@@ -1,4 +1,9 @@
 #include "WS_TCA9554PWR.h"
+#include "config.h"
+
+#ifdef LATENCY_TEST_ENABLE
+uint32_t g_lastI2CWriteTimeUs = 0;  // 最后一次 I2C 写入的耗时 (us)
+#endif
 
 /*****************************************************  Operation register REG   ****************************************************/   
 uint8_t Read_REG(uint8_t REG)                             // Read the value of the TCA9554PWR register REG
@@ -60,12 +65,18 @@ bool Set_EXIO(uint8_t Pin,uint8_t State)                  // Sets the level stat
 {
   uint8_t Data;
   if(State < 2 && Pin < 9 && Pin > 0){  
+#ifdef LATENCY_TEST_ENABLE
+    uint32_t t0 = micros();
+#endif
     uint8_t bitsStatus = Read_EXIOS(TCA9554_OUTPUT_REG);
     if(State == 1)                                     
       Data = (0x01 << (Pin-1)) | bitsStatus; 
     else if(State == 0)                  
       Data = (~(0x01 << (Pin-1))) & bitsStatus;      
     uint8_t result = Write_REG(TCA9554_OUTPUT_REG,Data);  
+#ifdef LATENCY_TEST_ENABLE
+    g_lastI2CWriteTimeUs = micros() - t0;
+#endif
     if (result != 0) {                         
       printf("Failed to set GPIO!!!\r\n");
       return 0;

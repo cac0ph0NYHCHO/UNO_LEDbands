@@ -5,21 +5,16 @@
 #include "command_handler.h"
 #include "emergency.h"
 #include "button.h"
-#include "WS_Dout.h"        // EXIO 数字输出控制
-#include "WS_TCA9554PWR.h"  // I2C IO 扩展器
-#include "I2C_Driver.h"     // I2C 驱动
-#include "WS_WIFI.h"        // WiFi STA 连接路由器 + 网页控制DOUT
-#include "WS_GPIO.h"        // RGB + 蜂鸣器（WiFi连接状态指示）
-#include "can_handler.h"    // CAN 模块
-#include "can_relay.h"      // CAN 继电器模块
+#include "WS_Dout.h"
+#include "WS_TCA9554PWR.h"
+#include "I2C_Driver.h"
+#include "WS_WIFI.h"
+#include "WS_GPIO.h"
+#include "can_handler.h"
+#include "can_relay.h"
 
 /* ===========================================================
  * CAN 命令回调函数
- *
- * 本板作为 CAN 总线上的设备，收到以下 ID 的帧时执行相应操作：
- *   0x100 — LED 灯带命令（兼容旧协议）
- *   0x101 — LED 直接设色
- *   0x200 — 外部继电器模块的回复/查询响应
  * =========================================================== */
 static void onCanCommand(const CanFrame* frame) {
   if (!frame) return;
@@ -33,13 +28,11 @@ static void onCanCommand(const CanFrame* frame) {
   }
   Serial.println();
 
-  // -------- LED 控制命令 (ID=0x100) --------
   if (frame->id == 0x100 && frame->len >= 1) {
     char cmdStr[4];
     snprintf(cmdStr, sizeof(cmdStr), "%d", frame->data[0]);
     processCommand(cmdStr);
   }
-  // -------- LED 直接设色 (ID=0x101) --------
   else if (frame->id == 0x101 && frame->len >= 3) {
     setAllLEDs(frame->data[0], frame->data[1], frame->data[2]);
     currentState = STATE_IDLE;
@@ -50,7 +43,6 @@ static void onCanCommand(const CanFrame* frame) {
     Serial.print(F(","));
     Serial.println(frame->data[2]);
   }
-  // -------- 外部继电器模块回复 (ID=0x200) --------
   else if (frame->id == 0x200) {
     relayProcessResponse(frame->id, frame->data, frame->len);
   }
@@ -62,17 +54,11 @@ void setup() {
   initLEDs();
   initButton();
 
-  // 初始化 GPIO（RGB灯和蜂鸣器）
   GPIO_Init();
-
-  // 初始化 I2C 和 EXIO 数字输出
   I2C_Init();
   Dout_Init();
-
-  // 初始化 WiFi STA（连接路由器 + 启动网页服务器控制DOUT）
   WIFI_Init();
 
-  // CAN 总线
   if (initCAN(CAN_TX_PIN, CAN_RX_PIN, CAN_BAUDRATE)) {
     registerCanCallback(onCanCommand);
     Serial.println(F("[CAN] 回调注册完成"));
@@ -80,6 +66,12 @@ void setup() {
 
   delay(500);
 
+#ifdef LATENCY_TEST_ENABLE
+  Serial.println(F("========================================"));
+  Serial.println(F("    延迟测试模式（中断+精简loop）"));
+  Serial.println(F("    按键下降沿中断触发，无delay(1)"));
+  Serial.println(F("========================================"));
+#else
   Serial.println(F("========================================"));
   Serial.println(F("    串口控制WS2812灯带系统"));
   Serial.println(F("========================================"));
@@ -97,34 +89,90 @@ void setup() {
   Serial.println(F("----------------------------------------"));
   Serial.println(F("等待命令..."));
   Serial.println(F("========================================"));
+#endif
 
   showCurrentState();
 }
 
-/* ===========================================================
- * 发送 CAN 测试帧
- * =========================================================== */
 void sendCanTestFrame() {
-  // data[0]=2 对应命令"2"=红色常亮
   uint8_t data[1] = {2};
   if (sendCanMessage(0x100, data, 1)) {
-    Serial.println(F("[CAN测试] 已发送 ID=0x100  data=[2] (红色常亮)"));
-    Serial.println(F("[CAN测试] 等待回环接收..."));
+    Serial.println(F("[CAN测试] 已发送 ID=0x100  data=[2]"));
   } else {
     Serial.println(F("[CAN测试] 发送失败!"));
   }
 }
 
+// =================================================================
+// 延迟测试模式：精简版 loop
+// =================================================================
+#ifdef LATENCY_TEST_ENABLE
+
+void loop() {
+  processCANReceive();
+
+  updateButton();
+  ButtonEvent btnEvent = getButtonEvent();
+
+  if (btnEvent == BTN_SHORT_PRESS) {
+    static bool exioState = false;
+    exioState = !exioState;
+
+    // g_btnFallTime 在中断 ISR 中已记录，精确到按键按下瞬间
+    uint32_t tBefore = micros();
+
+    if (exioState) {
+      Dout_Open(1);
+      uint32_t tAfter = micros();
+      Serial.print(F("[延迟测试] 短按->EXIO1导通: loop响应="));
+      Serial.print(tBefore - g_btnFallTime);
+      Serial.print(F(" I2C读写="));
+      Serial.print(tAfter - tBefore);
+      Serial.print(F(" 总延迟="));
+      Serial.println(tAfter - g_btnFallTime);
+    } else {
+      Dout_Closs(1);
+      uint32_t tAfter = micros();
+      Serial.print(F("[延迟测试] 短按->EXIO1断开: loop响应="));
+      Serial.print(tBefore - g_btnFallTime);
+      Serial.print(F(" I2C读写="));
+      Serial.print(tAfter - tBefore);
+      Serial.print(F(" 总延迟="));
+      Serial.println(tAfter - g_btnFallTime);
+    }
+  }
+
+  if (emergencyActive) {
+    if (emergencyStartTime == 0) {
+      emergencyStartTime = millis();
+    }
+    static uint32_t lastEmergPrint = 0;
+    uint32_t now = millis();
+    if (now - lastEmergPrint > 1000) {
+      lastEmergPrint = now;
+      showEmergencyStatus(now);
+    }
+    return;
+  }
+  emergencyStartTime = 0;
+
+  handleSerialCommands();
+  delay(0);
+}
+
+// =================================================================
+// 正常模式：完整功能 loop
+// =================================================================
+#else
+
 void loop() {
   uint32_t currentTime = millis();
   static uint32_t lastLEDUpdate = 0;
   static uint32_t lastStatusUpdate = 0;
-  static uint32_t lastCanTestTime = 0;  // CAN 定时测试
+  static uint32_t lastCanTestTime = 0;
 
-  // CAN 接收处理
   processCANReceive();
 
-  // 更新按键状态
   updateButton();
   ButtonEvent btnEvent = getButtonEvent();
   if (btnEvent == BTN_SHORT_PRESS) {
@@ -145,14 +193,11 @@ void loop() {
     if (emergencyStartTime == 0) {
       emergencyStartTime = currentTime;
     }
-
     setAllLEDs(255, 0, 0);
-
     if (currentTime - lastStatusUpdate > 1000) {
       lastStatusUpdate = currentTime;
       showEmergencyStatus(currentTime);
     }
-
     return;
   }
 
@@ -160,13 +205,11 @@ void loop() {
   handleSerialCommands();
   updateLEDDisplay(currentTime, &lastLEDUpdate);
 
-  // 每秒打印一次状态
   if (currentTime - lastStatusUpdate > 1000) {
     lastStatusUpdate = currentTime;
     showCurrentState();
   }
 
-  // 回环模式：每 10 秒自动发送一次测试帧
   #ifdef CAN_LOOPBACK
   if (currentTime - lastCanTestTime > 10000) {
     lastCanTestTime = currentTime;
@@ -176,3 +219,5 @@ void loop() {
 
   delay(1);
 }
+
+#endif

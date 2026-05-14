@@ -34,6 +34,11 @@ uint8_t Read_EXIOS(uint8_t REG);
 /********************************************************** Set the EXIO output status **********************************************************/  
 bool Set_EXIO(uint8_t Pin,uint8_t State);
 bool Set_EXIOS(uint8_t PinState);
+
+// 延迟测试：获取最后一次 I2C 写入的微秒耗时
+#ifdef LATENCY_TEST_ENABLE
+extern uint32_t g_lastI2CWriteTimeUs;
+#endif
 /********************************************************** Flip EXIO state **********************************************************/  
 bool Set_Toggle(uint8_t Pin);
 /********************************************************* TCA9554PWR Initializes the device ***********************************************************/  
