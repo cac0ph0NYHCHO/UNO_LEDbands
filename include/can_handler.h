@@ -1,5 +1,5 @@
-#ifndef CAN_HANDLER_H
-#define CAN_HANDLER_H
+#pragma once
+
 
 #include <Arduino.h>
 
@@ -80,4 +80,3 @@ void printCANStatus();
  */
 void processCANReceive();
 
-#endif // CAN_HANDLER_H

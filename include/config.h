@@ -1,5 +1,5 @@
-﻿#ifndef CONFIG_H
-#define CONFIG_H
+﻿#pragma once
+
 
 #include <Arduino.h>
 
@@ -31,5 +31,4 @@
 // ========== 串口命令中继电器相关 ==========
 #define RELAY_CMD_PREFIX     "relay"   // 串口继电器命令前缀
 
-#endif // CONFIG_H
 

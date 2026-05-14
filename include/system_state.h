@@ -1,5 +1,5 @@
-#ifndef SYSTEM_STATE_H
-#define SYSTEM_STATE_H
+#pragma once
+
 
 #include <Arduino.h>
 #include "config.h"
@@ -29,4 +29,4 @@ extern uint32_t rainbowStartTime;
 extern uint32_t rainbowLastUpdate;
 extern uint16_t rainbowHue;
 
-#endif // SYSTEM_STATE_H
+

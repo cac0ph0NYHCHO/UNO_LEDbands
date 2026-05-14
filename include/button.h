@@ -1,5 +1,5 @@
-#ifndef BUTTON_H
-#define BUTTON_H
+#pragma once
+
 
 #include <Arduino.h>
 #include "config.h"
@@ -26,6 +26,3 @@ void initButton();
 ButtonEvent getButtonEvent();
 void clearButtonEvent();
 void updateButton();
-
-#endif // BUTTON_H
-

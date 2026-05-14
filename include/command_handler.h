@@ -1,5 +1,4 @@
-#ifndef COMMAND_HANDLER_H
-#define COMMAND_HANDLER_H
+#pragma once
 
 #include <Arduino.h>
 #include "system_state.h"
@@ -12,4 +11,3 @@ String getTimeString();
 void printStateName(SystemState state);
 char toLowerCase(char c);
 
-#endif // COMMAND_HANDLER_H

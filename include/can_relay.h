@@ -1,5 +1,5 @@
-#ifndef CAN_RELAY_H
-#define CAN_RELAY_H
+#pragma once
+
 
 #include <Arduino.h>
 #include "config.h"
@@ -123,4 +123,4 @@ void relayPrintStatus(void);
  */
 void relayProcessResponse(uint32_t id, const uint8_t* data, uint8_t len);
 
-#endif // CAN_RELAY_H
+
