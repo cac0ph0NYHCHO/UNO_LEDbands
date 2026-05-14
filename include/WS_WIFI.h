@@ -7,9 +7,12 @@
 #include <WiFiClient.h>
 #include <WiFiAP.h>
 #include "WS_GPIO.h"
-#include "WS_Information.h"
 #include "WS_Struct.h"
 #include "WS_Dout.h"
+
+// 连接WIFI的账号密码
+#define STASSID       "SENAD_5845"
+#define STAPSK        "12345678"
 
 extern char ipStr[16];
 void handleRoot();
