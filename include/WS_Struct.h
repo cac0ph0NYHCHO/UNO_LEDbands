@@ -18,6 +18,7 @@ typedef enum {
   RS485_Mode_Trigger = 2,     // Used to distinguish data sources
   Bluetooth_Mode_Trigger = 3,
   WIFI_Mode_Trigger = 4,
+  ETH_Mode_Trigger = 4,       // 以太网复用 WIFI 的 ID（只用于显示，功能相同）
   RTC_Mode_Trigger = 5,
   MQTT_Mode_Trigger = 6,
 } Trigger_event;
@@ -31,3 +32,4 @@ typedef struct {
   uint8_t CAN_extd = 0;
   uint32_t repetition_Time[2]={0};        // Cycle duration     repetition_Time[0]:Cycle duration    repetition_Time[1]:Current duration
 } Web_Receive;
+

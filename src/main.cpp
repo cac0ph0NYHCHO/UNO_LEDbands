@@ -8,7 +8,7 @@
 #include "WS_Dout.h"
 #include "WS_TCA9554PWR.h"
 #include "I2C_Driver.h"
-#include "WS_WIFI.h"
+#include "WS_ETH.h"
 #include "WS_GPIO.h"
 #include "can_handler.h"
 #include "can_relay.h"
@@ -50,6 +50,15 @@ static void onCanCommand(const CanFrame* frame) {
 
 void setup() {
   Serial.begin(115200);
+  delay(500);  // 等待 USB CDC 枚举
+
+  Serial.println();
+  Serial.println(F("========================================"));
+  Serial.println(F("  系统启动"));
+  Serial.println(F("  等待网线连接后，RGB 灯会变绿色"));
+  Serial.println(F("========================================"));
+  Serial.flush();
+
   initEmergency();
   initLEDs();
   initButton();
@@ -57,14 +66,19 @@ void setup() {
   GPIO_Init();
   I2C_Init();
   Dout_Init();
-  WIFI_Init();
+
+  // 启动时 RGB 亮红色，表示等待网线连接
+  RGB_Light(255, 0, 0);  // 红色
+  Serial.println(F("[ETH] 初始化中..."));
+  Serial.flush();
+  ETH_Init();
 
   if (initCAN(CAN_TX_PIN, CAN_RX_PIN, CAN_BAUDRATE)) {
     registerCanCallback(onCanCommand);
     Serial.println(F("[CAN] 回调注册完成"));
   }
 
-  delay(500);
+  delay(1000);
 
 #ifdef LATENCY_TEST_ENABLE
   Serial.println(F("========================================"));
@@ -85,7 +99,8 @@ void setup() {
   Serial.print(BUTTON_PIN);
   Serial.print(F(" 数量="));
   Serial.println(NUMPIXELS);
-  Serial.println(F("按键: 短按=EXIO1输出24V 长按=WiFi信号(预留)"));
+  Serial.println(F("按键: 短按=EXIO1输出24V 长按=预留"));
+  Serial.println(F("以太网: 连接后将显示IP地址"));
   Serial.println(F("----------------------------------------"));
   Serial.println(F("等待命令..."));
   Serial.println(F("========================================"));
@@ -104,13 +119,14 @@ void sendCanTestFrame() {
 }
 
 // =================================================================
-// 延迟测试模式：精简版 loop
+// 延迟测试模式：精简版 loop（优化：按键处理优先，串口不阻塞）
 // =================================================================
 #ifdef LATENCY_TEST_ENABLE
 
 void loop() {
   processCANReceive();
 
+  // ★ 1. 按键处理优先 - 中断模式下按键会立即设置事件
   updateButton();
   ButtonEvent btnEvent = getButtonEvent();
 
@@ -156,7 +172,12 @@ void loop() {
   }
   emergencyStartTime = 0;
 
-  handleSerialCommands();
+  // ★ 2. 串口命令：仅在缓冲区有数据时才处理，绝不阻塞
+  if (Serial.available() > 0) {
+    handleSerialCommands();
+  }
+
+  // ★ 3. 短延时让出 CPU，让 EthServerTask 等任务获得运行时间
   delay(0);
 }
 
@@ -186,7 +207,7 @@ void loop() {
       Serial.println(F("[主循环] EXIO1 断开"));
     }
   } else if (btnEvent == BTN_LONG_PRESS) {
-    Serial.println(F("[主循环] 长按事件 - 预留: WiFi 发送信号"));
+    Serial.println(F("[主循环] 长按事件 - 预留"));
   }
 
   if (emergencyActive) {

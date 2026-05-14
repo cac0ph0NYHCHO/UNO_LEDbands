@@ -55,25 +55,17 @@ void initButton() {
  * =========================================================== */
 void updateButton() {
 #ifdef LATENCY_USE_INTERRUPT
-  // ========== 中断模式 ==========
+  // ========== 中断模式（高效版：按下即触发） ==========
   if (g_btnPressedFlag) {
-    // 读取当前电平
     bool level = digitalRead(BUTTON_PIN);
 
     if (level == LOW) {
-      // 按键仍处于按下状态，等待释放
-      // g_btnPressTimeMs 已在 ISR 中记录
-    } else {
-      // 按键已释放，计算按键时长
+      // 按键按下 → 立即触发短按事件（不等待释放）
       g_btnPressedFlag = false;
-      uint32_t duration = millis() - g_btnPressTimeMs;
-      g_btnPressTimeMs = 0;
-
-      if (duration < SHORT_PRESS_MS) {
-        pendingEvent = BTN_SHORT_PRESS;
-      } else {
-        pendingEvent = BTN_LONG_PRESS;
-      }
+      pendingEvent = BTN_SHORT_PRESS;
+    } else {
+      // 按键已释放，清除标志
+      g_btnPressedFlag = false;
     }
   }
 #else

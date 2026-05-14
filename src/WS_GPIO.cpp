@@ -18,7 +18,7 @@ void GPIO_Init() {
     NULL,                 
     2,                   
     NULL,                 
-    0                   
+    1                     // Core 1（与实时 loop 分离）
   );
   xTaskCreatePinnedToCore(
     BuzzerTask,    
@@ -27,7 +27,7 @@ void GPIO_Init() {
     NULL,                 
     2,                   
     NULL,                 
-    0                   
+    1                     // Core 1（与实时 loop 分离）
   );
 }
 

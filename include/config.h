@@ -31,6 +31,25 @@
 // ========== 串口命令中继电器相关 ==========
 #define RELAY_CMD_PREFIX     "relay"   // 串口命令前缀
 
+// ========== 以太网配置 ==========
+// 本产品板载 SPI 以太网控制器（DM9051/W5500 兼容）
+// 引脚定义参考产品手册
+#define ETH_CS_PIN    16     // SPI 片选
+#define ETH_INT_PIN   12     // 以太网中断引脚
+#define ETH_RST_PIN   39     // 以太网复位引脚
+#define ETH_SCLK_PIN  15     // SPI 时钟
+#define ETH_MOSI_PIN  13     // SPI 主机输出/从机输入
+#define ETH_MISO_PIN  14     // SPI 主机输入/从机输出
+
+// 以太网静态 IP 配置（如使用 DHCP 则忽略）
+#define ETH_USE_DHCP          // 取消注释以启用 DHCP
+#ifndef ETH_USE_DHCP
+  #define ETH_LOCAL_IP      IPAddress(10, 7, 5, 82)
+  #define ETH_GATEWAY       IPAddress(10, 7, 5, 1)
+  #define ETH_SUBNET        IPAddress(255, 255, 255, 0)
+  #define ETH_DNS           IPAddress(114, 114, 114, 114)
+#endif
+
 // ========== 延迟测试配置 ==========
 // 取消注释启用按键→EXIO 反应时间测试模式
 // 启用后会关掉不必要的串口打印，并在关键点输出微秒级时间戳
@@ -46,5 +65,4 @@
 #endif
 
 #endif // CONFIG_H
-
 

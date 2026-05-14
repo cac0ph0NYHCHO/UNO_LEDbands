@@ -84,7 +84,7 @@ void Dout_Analysis(uint8_t *buf,uint8_t Mode_Flag)
   if(Mode_Flag == Bluetooth_Mode_Trigger)
     printf("Bluetooth Data :\r\n");
   else if(Mode_Flag == WIFI_Mode_Trigger)
-    printf("WIFI Data :\r\n");
+    printf("ETH Data :\r\n");
   else if(Mode_Flag == RS485_Mode_Trigger)
     printf("RS485 Data :\r\n");  
   switch(buf[0])
